@@ -5,6 +5,7 @@ class SheetApi {
   constructor() {
     this.apiBase = 'https://spreadsheets.google.com/feeds/list';
     this.macroApiBase = 'https://script.googleusercontent.com/macros/echo';
+    this.jsonApiBase = 'https://iamakawa.github.io/covid19-csv'
   }
 
   getNewsData() {
@@ -27,13 +28,13 @@ class SheetApi {
   }
 
   graphMainSummary(inspections_sum) {
-    return axios.get(`${this.apiBase}/1R47TohMIVOIU_GyuOAW42VOBzol_F0FJtLulvBYu5oY/1/public/values?alt=json`)
+    return axios.get(`${this.jsonApiBase}/patients.json`)
       .then((res) => {
         const items = { '検査実施件数': inspections_sum, '陽性患者数': 0, '入院中': 0, '軽症・中等症': 0, '重症': 0, '退院': 0, '死亡': 0 }
-        const values = Object.values(res.data.feed.entry)
+        const values = Object.values(res.data.data)
         values.forEach((value) => {
-          if (value.gsx$退院済フラグ.$t == 1) {
-            if (value.gsx$患者状態.$t == '死亡') {
+          if (value.退院済フラグ == '1') {
+            if (value.患者状態 == '死亡') {
               items['死亡']++;
             }
             else {
@@ -41,7 +42,7 @@ class SheetApi {
             }
           }
           else {
-            if (value.gsx$患者状態.$t == '重症') {
+            if (value.患者状態 == '重症') {
               items['重症']++;
             }
             else {
@@ -87,7 +88,7 @@ class SheetApi {
               }
             ]
           },
-          last_update: dayjs(values[values.length - 1].updated.$t).format('YYYY/MM/DD HH:mm'),
+          last_update: dayjs(res.data.last_update).format('YYYY/MM/DD HH:mm'),
         }
         return main_summary;
       })
@@ -95,27 +96,27 @@ class SheetApi {
   }
 
   getPatients() {
-    return axios.get(`${this.apiBase}/1R47TohMIVOIU_GyuOAW42VOBzol_F0FJtLulvBYu5oY/1/public/values?alt=json`)
+    return axios.get(`${this.jsonApiBase}/patients.json`)
       .then((res) => {
         const items = []
-        const values = Object.values(res.data.feed.entry)
+        const values = Object.values(res.data.data)
         values.forEach((value) => {
           const item = {
-            No: value.gsx$no.$t,
-            リリース日: dayjs(value.gsx$公表年月日.$t, 'YYYY-MM-DD').format() ?? '不明',
+            No: value.No,
+            リリース日: dayjs(value.公表年月日, 'YYYY-MM-DD').format() ?? '不明',
             // 曜日: value.gsx$曜日.$t,
-            居住地: value.gsx$患者居住地.$t,
-            年代: value.gsx$患者年代.$t,
-            性別: value.gsx$患者性別.$t,
-            備考: value.gsx$備考.$t,
-            退院: value.gsx$退院済フラグ.$t,
+            居住地: value.患者居住地,
+            年代: value.患者年代,
+            性別: value.患者性別,
+            備考: value.備考,
+            退院: value.退院済フラグ,
           }
           items.push(item)
         });
         const patients = {
           data: items,
-          last_update: dayjs(values[values.length - 1].updated.$t).format('YYYY/MM/DD HH:mm'),
-          date: dayjs(values[values.length - 1].updated.$t).format('YYYY/MM/DD')
+          last_update: dayjs(res.data.last_update).format('YYYY/MM/DD HH:mm'),
+          date: dayjs(res.data.last_update).format('YYYY/MM/DD HH:mm')
         }
         return patients;
       })
@@ -123,13 +124,13 @@ class SheetApi {
   }
 
   getPatientsSummary() {
-    return axios.get(`${this.apiBase}/1R47TohMIVOIU_GyuOAW42VOBzol_F0FJtLulvBYu5oY/1/public/values?alt=json`)
+    return axios.get(`${this.jsonApiBase}/patients.json`)
       .then((res) => {
         const items = []
-        const values = Object.values(res.data.feed.entry)
+        const values = Object.values(res.data.data)
         values.forEach((value) => {
           const item = {
-            日付: dayjs(value.gsx$公表年月日.$t, 'YYYY-MM-DD').format() ?? '不明'
+            日付: dayjs(value.公表年月日, 'YYYY-MM-DD').format() ?? '不明'
           }
           items.push(item)
         });
@@ -149,7 +150,7 @@ class SheetApi {
         }, []);
         const patients_summary = {
           data: this.addPaddingDay2Summary(group),
-          last_update: dayjs(values[values.length - 1].updated.$t).format('YYYY/MM/DD HH:mm'),
+          last_update: dayjs(res.data.last_update).format('YYYY/MM/DD HH:mm'),
         }
         return patients_summary;
       })
@@ -185,20 +186,20 @@ class SheetApi {
   }
 
   getInspectionsSummary() {
-    return axios.get(`${this.apiBase}/15CHGPTLs5aqHXq38S1RbrcTtaaOWDDosfLqvey7nh8k/5/public/values?alt=json`)
+    return axios.get(`${this.jsonApiBase}/testcount.json`)
       .then((res) => {
         const items = []
-        const values = Object.values(res.data.feed.entry)
+        const values = Object.values(res.data.data)
         values.forEach((value) => {
           const item = {
-            日付: dayjs(value.gsx$実施年月日.$t, 'YYYY/MM/DD').format() ?? '不明',
-            小計: Number(value.gsx$検査実施件数.$t),
+            日付: dayjs(value.実施年月日, 'YYYY-MM-DD').format() ?? '不明',
+            小計: Number(value.検査実施件数),
           }
           items.push(item)
         });
         const inspections_summary = {
           data: items,
-          last_update: dayjs(values[values.length - 1].updated.$t).format('YYYY/MM/DD HH:mm'),
+          last_update: dayjs(res.data.last_update).format('YYYY/MM/DD HH:mm'),
         }
         return inspections_summary;
       })
@@ -206,20 +207,20 @@ class SheetApi {
   }
 
   getCallCenterSummary() {
-    return axios.get(`${this.apiBase}/15CHGPTLs5aqHXq38S1RbrcTtaaOWDDosfLqvey7nh8k/7/public/values?alt=json`)
+    return axios.get(`${this.jsonApiBase}/callcenter.json`)
       .then((res) => {
         const items = []
-        const values = Object.values(res.data.feed.entry)
+        const values = Object.values(res.data.data)
         values.forEach((value) => {
           const item = {
-            日付: dayjs(value.gsx$受付年月日.$t, 'YYYY/MM/DD').format() ?? '不明',
-            小計: Number(value.gsx$相談件数.$t),
+            日付: dayjs(value.受付年月日, 'YYYY/MM/DD').format() ?? '不明',
+            小計: Number(value.相談件数),
           }
           items.push(item)
         });
         const callcenter_summary = {
           data: items,
-          last_update: dayjs(values[values.length - 1].updated.$t).format('YYYY/MM/DD HH:mm'),
+          last_update: dayjs(res.data.last_update).format('YYYY/MM/DD HH:mm'),
         }
         return callcenter_summary;
       })
@@ -227,20 +228,20 @@ class SheetApi {
   }
 
   getAdviceCenterSummary() {
-    return axios.get(`${this.apiBase}/15CHGPTLs5aqHXq38S1RbrcTtaaOWDDosfLqvey7nh8k/8/public/values?alt=json`)
+    return axios.get(`${this.jsonApiBase}/advicecenter.json`)
       .then((res) => {
         const items = []
-        const values = Object.values(res.data.feed.entry)
+        const values = Object.values(res.data.data)
         values.forEach((value) => {
           const item = {
-            日付: dayjs(value.gsx$受付年月日.$t, 'YYYY/MM/DD').format() ?? '不明',
-            小計: Number(value.gsx$帰国者接触者相談センター相談件数.$t),
+            日付: dayjs(value.受付年月日, 'YYYY/MM/DD').format() ?? '不明',
+            小計: Number(value.帰国者接触者相談センター相談件数),
           }
           items.push(item)
         });
         const advicecenter_summary = {
           data: items,
-          last_update: dayjs(values[values.length - 1].updated.$t).format('YYYY/MM/DD HH:mm'),
+          last_update: dayjs(res.data.last_update).format('YYYY/MM/DD HH:mm'),
         }
         return advicecenter_summary;
       })
