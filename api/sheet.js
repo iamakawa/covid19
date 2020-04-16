@@ -5,7 +5,7 @@ class SheetApi {
   constructor() {
     this.apiBase = 'https://spreadsheets.google.com/feeds/list';
     this.macroApiBase = 'https://script.googleusercontent.com/macros/echo';
-    this.jsonApiBase = 'https://iamakawa.github.io/covid19-csv'
+    this.jsonApiBase = 'https://code-for-gifu.github.io/covid19-scraping'
   }
 
   getNewsData() {
