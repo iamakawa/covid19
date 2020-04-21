@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import { Doughnut, Bar, mixins } from 'vue-chartjs'
+import { Doughnut, Bar, Line, mixins } from 'vue-chartjs'
 const { reactiveProp } = mixins
 
 Vue.component('doughnut-chart', {
@@ -29,3 +29,18 @@ Vue.component('bar', {
     this.renderChart(this.chartData, this.options)
   }
 })
+
+Vue.component('multiplelinechart', {
+  extends: Line,
+  mixins: [reactiveProp],
+  props: {
+    options: {
+      type: Object,
+      default: () => {}
+    }
+  },
+  mounted() {
+    this.renderChart(this.chartData, this.options)
+  }
+})
+

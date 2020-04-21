@@ -221,7 +221,39 @@ class SheetApi {
         return links;
       })
       .catch(e => ({ error: e }));
+    }
+
+    getGoout_Comein() {
+    if (this.cache.goout_comein) return this.loadCache(this.cache.getgoout_comein);
+    return axios.get(`${this.apiBase}/15CHGPTLs5aqHXq38S1RbrcTtaaOWDDosfLqvey7nh8k/13/public/values?alt=json`)
+      .then((res) => {
+        const items = []
+        const values = Object.values(res.data.feed.entry)
+
+        values.forEach((value) => {
+          const segments = {
+            往訪岐阜県全域: value.gsx$往訪岐阜県全域.$t,
+            往訪岐阜市: value.gsx$往訪岐阜市.$t,
+            来訪岐阜県全域: value.gsx$来訪岐阜県全域.$t,
+            来訪岐阜市: value.gsx$来訪岐阜市.$t
+          }
+          const item = {
+            日付: dayjs(value.gsx$日付.$t, 'YYYY/MM/DD').format() ?? '不明',
+            小計: segments
+          }
+          items.push(item)
+        });
+        const goout_comein = {
+          data: items,
+          label:['往訪岐阜県全域','往訪岐阜市','来訪岐阜県全域','来訪岐阜市'],
+          last_update: values[values.length - 1].updated.$t
+        }
+        this.cache.goout_comein = goout_comein;//cacheへ格納
+        return goout_comein;
+      })
+      .catch(e => ({ error: e }));
   }
+    
 
   graphData() {
     return axios.get(`${this.macroApiBase}?user_content_key=lttTvfv73JB1_0b3dWmanW_0P9DGkUcm-AfsaNdLi66LA3jZN-2LxoI61hsD1XcvX7wjJPbA-aQMU8fYuYzu_il2z3j02F4um5_BxDlH2jW0nuo2oDemN9CCS2h10ox_1xSncGQajx_ryfhECjZEnP9k53dGa_9bOh55uXRyK3KuHQRrFP7y3JXXDLFBzyALBHA50y4X5nQTHbX7VSKaSRdIug5zkO6q&lib=MkDaaQ5v_1yAZBU3X6zh8HTFkUrmYniUZ`)

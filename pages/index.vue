@@ -37,6 +37,18 @@
           :sorting="patientsTableSorting"
         />
       </v-col>
+      <v-col cols="12" md="6" class="DataCard">
+        <multiple-line-chart
+          :loaded="goout_comein_summary.loaded"
+          title="来訪者・往訪者の推移"
+          :title-id="'number-of-goout-comein'"
+          :chart-id="'line-chart-goout-comein'"
+          :chart-data="goout_comeinGraph"
+          :date="goout_comein_summary.last_update"
+          :unit="$t('%')"
+        />
+      </v-col>
+
     </v-row>
   </div>
 </template>
@@ -44,12 +56,14 @@
 <script>
 import PageHeader from '@/components/PageHeader.vue'
 import TimeBarChart from '@/components/TimeBarChart.vue'
+import MultipleLineChart from '@/components/MultipleLineChart.vue'
 import WhatsNew from '@/components/WhatsNew.vue'
 import StaticButton from '@/components/StaticButton.vue'
 import DataTable from '@/components/DataTable.vue'
 import SvgCard from '@/components/SvgCard.vue'
 import ConfirmedCasesTable from '@/components/ConfirmedCasesTable.vue'
 import formatGraph from '@/utils/formatGraph'
+import formatLineGraph from '@/utils/formatLineGraph'
 import formatTable from '@/utils/formatTable'
 import formatConfirmedCases from '@/utils/formatConfirmedCases'
 import sheetApi from '@/api/sheet'
@@ -59,6 +73,7 @@ export default {
   components: {
     PageHeader,
     TimeBarChart,
+    MultipleLineChart,
     WhatsNew,
     StaticButton,
     DataTable,
@@ -84,6 +99,9 @@ export default {
       })
       await sheetApi.getPatients().then(response => {
         this.getPatientsTableData(response)
+      })
+      await sheetApi.getGoout_Comein().then(response => {
+        this.getGooutComeinData(response)
       })
     },
     getPatientsTableData(patients) {
@@ -115,6 +133,11 @@ export default {
       this.confirmedCases = formatConfirmedCases(main_summary.data)
       this.confirmed.last_update = main_summary.last_update
       this.confirmed.loaded = true
+    },
+    getGooutComeinData(goout_comein_summary) {
+      this.goout_comeinGraph = formatLineGraph(goout_comein_summary.data, goout_comein_summary.label)
+      this.goout_comein_summary.last_update = goout_comein_summary.last_update
+      this.goout_comein_summary.loaded = true
     }
   },
   data() {
@@ -131,6 +154,10 @@ export default {
         loaded: false,
         last_update: ''
       },
+      goout_comein_summary: {
+        loaded: false,
+        last_update: ''
+      },
       /**
        * 全体の最終更新日
        */
@@ -140,6 +167,7 @@ export default {
        */
       patientsTable: {},
       patientsGraph: [],
+      goout_comeinGraph: {},
       confirmedCases: {},
       sumInfoOfPatients: {},
       headerItem: {
