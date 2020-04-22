@@ -5,7 +5,7 @@
       v-else
       :chart-data="displayData"
       :options="displayOption"
-      :height="240"
+      :height="600"
     />
    <p class="Graph-Desc">{{info}}</p>
   </data-view>
@@ -75,6 +75,7 @@ export default {
       const unit = this.unit
       return {
         tooltips: {
+          //mode: 'index',
           displayColors: false,
           callbacks: {
             label(tooltipItem) {
@@ -82,16 +83,13 @@ export default {
               return labelText
             }
           }
+
         },
         responsive: true,
         maintainAspectRatio: false,
-        legend: {
-          display: false
-        },
         scales: {
           xAxes: [
             {
-              stacked: true,
               gridLines: {
                 display: false
               },
@@ -105,7 +103,6 @@ export default {
           yAxes: [
             {
               location: 'bottom',
-              stacked: true,
               gridLines: {
                 display: true,
                 color: '#E5E5E5'

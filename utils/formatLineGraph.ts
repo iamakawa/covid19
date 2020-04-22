@@ -1,13 +1,19 @@
+type subtotalObject = {
+  [key: string]: number
+}
+
 type DataType = {
   日付: Date
-  小計: []
+  小計: subtotalObject
 }
 type LabelType = (string)[]
 
 type DataSetType = {
   label: string
   data: (number)[]
-  lineColorID: number
+  borderColor: string
+  backgroundColor: string
+  fill: boolean
 }
 
 type LineDataType = {
@@ -15,6 +21,7 @@ type LineDataType = {
   datasets: (DataSetType)[]
 }
 
+const lineColors = ['#69b6d5','#9ce8ff','#3386a4','#005975']
 
 export default (data: DataType[], labels_in: LabelType) => {
   const today = new Date()
@@ -25,13 +32,13 @@ export default (data: DataType[], labels_in: LabelType) => {
     vals[i] = []
   }
 
-  const currentdata = data//.filter(d => new Date(d['日付']) < today)
+  const currentdata = data
   for(var i=0; i<currentdata.length; i++) {
     const date = new Date(currentdata[i]['日付'])
     days.push((date.getMonth() + 1)+'/'+(date.getDate()))
     for(var j=0; j<labels_in.length; j++) {
       const currentval = currentdata[i]['小計']
-      vals[j].push(currentval[labels_in[j]])
+      vals[j].push(currentval[labels_in[j]]-100)
     }
   }
 
@@ -39,7 +46,9 @@ export default (data: DataType[], labels_in: LabelType) => {
     var dataset: DataSetType = {
       label : labels_in[i],
       data : vals[i],
-      lineColorID : i%4
+      borderColor : lineColors[i%4],
+      backgroundColor : lineColors[i%4],
+      fill: false,
     };
     datas.push(dataset);
   }

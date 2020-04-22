@@ -37,7 +37,7 @@
           :sorting="patientsTableSorting"
         />
       </v-col>
-      <v-col cols="12" md="6" class="DataCard">
+      <v-col cols="12" md="12" class="DataCard">
         <multiple-line-chart
           :loaded="goout_comein_summary.loaded"
           title="来訪者・往訪者の推移"
